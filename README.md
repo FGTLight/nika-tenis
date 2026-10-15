@@ -126,21 +126,20 @@ Middlewares: `helmet`, CORS con lista blanca, `express-rate-limit`, manejo centr
 
 ## 6. Despliegue sugerido
 
-### Backend → Render (o Railway)
+### Backend → Render (Blueprint, `render.yaml`)
 
-1. New → **Web Service**, root directory `server`.
-2. Build: `npm install && npm run build`
-3. Start: `npm run start:prod` (aplica el schema a la BD y arranca; el disco persistente solo existe en runtime, por eso no va en el build).
-4. Variables: todas las de `server/.env.example`, con `NODE_ENV=production` y `CLIENT_ORIGIN=https://tu-sitio.vercel.app`.
-5. **Persistencia de SQLite**: en Render agrega un **Persistent Disk** (ej. montado en `/var/data`) y usa `DATABASE_URL="file:/var/data/nika.db"`. En Railway, un Volume.
-6. **Seed, solo la primera vez**: desde la *Shell* del servicio, `npm run db:seed`. No lo repitas después: borra los productos cargados por el admin.
-   *Alternativa:* PostgreSQL gestionado → cambia `provider = "postgresql"` en `server/prisma/schema.prisma` y pon su URL en `DATABASE_URL` (el schema solo usa tipos portables).
+1. Render → **New → Blueprint** → elige el repositorio de GitHub. Lee `render.yaml` y crea el servicio `nika-tenis-api` (plan free, root `server`).
+2. Te pide los valores secretos: `ADMIN_PASSWORD` (una contraseña fuerte), `CLIENT_ORIGIN` (la URL de Vercel; si aún no la tienes, pon cualquiera y cámbiala después) y, opcional, `SMTP_*` / `MAIL_TO`. `JWT_SECRET` se genera solo.
+3. Al arrancar (`npm run start:prod`) crea las tablas y, **si la base está vacía**, carga el seed (`seed.ts --if-empty`). Nunca borra datos existentes.
+
+⚠️ **Plan free = disco temporal.** En cada reinicio o deploy la base vuelve al seed: se pierden los leads y lo editado en `/admin`. Para el lanzamiento real: plan pago + **Persistent Disk** con `DATABASE_URL="file:/var/data/nika.db"`, o PostgreSQL (cambia `provider = "postgresql"` en `schema.prisma`; el schema solo usa tipos portables). Además el plan free "duerme" tras 15 min sin visitas: la primera carga después tarda ~50 s.
 
 ### Frontend → Vercel
 
-1. Importa el repo, root directory `client`, framework **Vite**.
-2. Variables: `VITE_API_URL=https://tu-api.onrender.com` y, opcionalmente, `VITE_WHATSAPP_NUMBER`.
-3. `client/vercel.json` ya incluye el rewrite para que `/admin` funcione al recargar la página.
+1. Vercel → **Add New → Project** → importa el repo. **Root Directory: `client`** (framework Vite, detectado solo).
+2. Variables: `VITE_API_URL=https://nika-tenis-api.onrender.com` (la URL que te dio Render) y, en la versión de prueba, `VITE_NOINDEX=true` (oculta el sitio de Google; quítala en el lanzamiento oficial).
+3. `client/vercel.json` ya incluye el rewrite para que `/modelos` y `/admin` funcionen al recargar la página.
+4. Vuelve a Render y pon en `CLIENT_ORIGIN` la URL final de Vercel (sin `/` al final).
 
 ---
 
