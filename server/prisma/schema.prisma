@@ -1,0 +1,82 @@
+// Prisma schema – Nika Tênis
+// SQLite por padrão (zero configuração). Os campos usam apenas tipos portáveis
+// (String/Float/Int/Boolean/DateTime), então dá para migrar para PostgreSQL
+// trocando só o `provider` abaixo.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  brand          String   @default("")
+  description    String
+  /// masculino | feminino | infantil | esportivo
+  category       String
+  price          Float
+  /// Preço de atacado (opcional, exibido só como referência para revendedores)
+  wholesalePrice Float?
+  /// Tamanhos separados por vírgula: "38,39,40"
+  sizes          String   @default("")
+  featured       Boolean  @default(false)
+  isNew          Boolean  @default(false)
+  /// URL de foto real. Se vazio, o site desenha um tênis ilustrado com as cores abaixo.
+  imageUrl       String   @default("")
+  colorPrimary   String   @default("#F2EFE9")
+  colorSecondary String   @default("#1A1A1A")
+  colorAccent    String   @default("#FF4F9A")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([category])
+  @@index([featured])
+}
+
+model WholesaleLead {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  whatsapp  String
+  cnpj      String?
+  message   String   @default("")
+  /// novo | contatado | fechado
+  status    String   @default("novo")
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  author    String
+  city      String   @default("")
+  rating    Int      @default(5)
+  text      String
+  featured  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+/// Registro único (id = 1) com os dados da loja, editável pelo /admin.
+model StoreInfo {
+  id        Int      @id @default(1)
+  name      String
+  address   String
+  city      String
+  phone     String
+  whatsapp  String
+  email     String   @default("")
+  latitude  Float
+  longitude Float
+  facebook  String   @default("")
+  instagram String   @default("")
+  /// JSON: [{ "days": "Seg a Sex", "time": "9h às 18h" }]
+  hours     String   @default("[]")
+  /// JSON: [{ "value": 500, "suffix": "+", "label": "Revendedores" }]
+  stats     String   @default("[]")
+  updatedAt DateTime @updatedAt
+}

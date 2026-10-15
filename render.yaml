@@ -1,0 +1,43 @@
+# Blueprint do Render — API da Nika Tênis (versão de teste, plano grátis)
+# Render → New → Blueprint → escolha este repositório.
+#
+# ⚠️ Plano grátis: o disco é apagado a cada reinício/deploy. No start, o banco SQLite
+#    é recriado e o catálogo/dados da loja voltam do seed (seed.ts --if-empty).
+#    Leads e edições feitas no /admin NÃO sobrevivem a um reinício.
+#    Para produção: plano pago + Persistent Disk (DATABASE_URL=file:/var/data/nika.db) ou Postgres.
+services:
+  - type: web
+    name: nika-tenis-api
+    runtime: node
+    plan: free
+    rootDir: server
+    # --include=dev: o build precisa de typescript/prisma/tsx mesmo com NODE_ENV=production
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prod.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: ADMIN_USER
+        value: admin
+      # Definidos no painel do Render na criação (não ficam no repositório):
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CLIENT_ORIGIN # URL do site na Vercel, ex.: https://nika-tenis.vercel.app
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: '587'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_TO
+        sync: false

@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tema: canais RGB (permitem opacidade no Tailwind, ex.: bg-brand/10).
+ * Padrão = claro (branco + rosa da marca). O botão do menu troca para [data-theme="dark"].
+ * O rosa muda de tom entre os temas para manter contraste AA com o texto dos botões.
+ */
+:root {
+  --c-ink: 255 255 255; /* fundo */
+  --c-coal: 255 242 247; /* superfícies */
+  --c-media: 252 228 237; /* fundo das ilustrações */
+  --c-line: 244 207 221; /* bordas */
+  --c-bone: 28 20 25; /* texto */
+  --c-mute: 122 104 114; /* texto secundário */
+  --c-brand: 216 27 96; /* rosa #D81B60 */
+  --c-danger: 190 30 45; /* vermelho */
+  --grain-opacity: 0.035;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --c-ink: 11 11 11;
+  --c-coal: 21 21 21;
+  --c-media: 27 27 27;
+  --c-line: 38 38 38;
+  --c-bone: 242 239 233;
+  --c-mute: 154 150 143;
+  --c-brand: 255 92 154; /* rosa #FF5C9A (mais claro para fundo escuro) */
+  --c-danger: 255 107 107;
+  --grain-opacity: 0.07;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    background: rgb(var(--c-ink));
+    color: rgb(var(--c-bone));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-ink font-sans text-bone;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease;
+  }
+  ::selection {
+    background: rgb(var(--c-brand));
+    color: rgb(var(--c-ink));
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-brand));
+    outline-offset: 3px;
+  }
+}
+
+/* Mapa: cores normais no claro; invertido e cinza no escuro */
+.map-themed {
+  filter: grayscale(0.15);
+}
+:root[data-theme='dark'] .map-themed {
+  filter: grayscale(1) invert(0.92) contrast(0.9);
+}
+
+/* Lenis (recomendado pela lib) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Grão sutil de filme por cima de tudo (SVG turbulence, sem imagem externa) */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Cursor customizado: esconde o nativo só quando ativo (desktop) */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-wider transition-[transform,background-color,color] duration-200 active:scale-95;
+  }
+  .btn-brand {
+    @apply btn bg-brand text-ink hover:bg-bone;
+  }
+  .btn-ghost {
+    @apply btn border border-bone/30 text-bone hover:border-brand hover:text-brand;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.3em] text-brand;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-bone placeholder:text-mute/70 focus:border-brand focus:outline-none;
+  }
+}
+
+/* Esconde a barra de rolagem nos carrosséis de swipe (mobile) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
